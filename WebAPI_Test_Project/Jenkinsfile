@@ -10,10 +10,11 @@ pipeline{
         stage("Check :net Version"){
             steps{
                 sh "dotnet --version"
+            }
         }
         stage ("Build"){
             steps{
-                sh "dotnet build WebAppI.sln -c Release"
+                sh "dotnet build WebAPI_Test_Project/WebAPI_Test_Project -c Release"
             }
         }
     }
