@@ -1,5 +1,16 @@
 pipeline{
     agent any
+    environment{
+        PROJECT_PATH = "WebAPI_Test_Project/WebAPI_Test_Project/WebAPI_Test_Project.csproj"
+        BUILD_CONFIG = "Release"
+        Artifact_DIR = "publish"
+        REGISTRY_CREDENTIALS = "WebApi_AccessKeys"
+        ACCOUNT_ID = "322276017193"
+        IMAGE_NAME = "webapirepo"
+        ECR_REGISTRY = "322276017193.dkr.ecr.us-east-1.amazonaws.com"
+        ECR_REGISTRY_URL = "https://322276017193.dkr.ecr.us-east-1.amazonaws.com"
+        FULL_IMAGE = "322276017193.dkr.ecr.us-east-1.amazonaws.com/webapirepo"
+    }
     stages{
         stage("checkout Code"){
             steps{
@@ -7,14 +18,72 @@ pipeline{
                     branch: "main"
             }
         }
-        stage("Check :net Version"){
+        stage("Check .Net Version"){
             steps{
                 sh "dotnet --version"
             }
         }
-        stage ("Build"){
+        stage("Restore Dependencies"){
             steps{
-                sh "dotnet build WebAPI_Test_Project/WebAPI_Test_Project -c Release"
+                sh "dotnet restore ${PROJECT_PATH}"
+            }
+        }
+        stage ("Build Application"){
+            steps{
+                sh "dotnet build ${PROJECT_PATH} -c ${BUILD_CONFIG}"
+            }
+        }
+        stage("Publish Application"){
+            steps{
+                sh "dotnet publish ${PROJECT_PATH} -c ${BUILD_CONFIG} -o ${Artifact_DIR}"
+            }
+        }
+        stage("Run Test"){
+            steps{
+                    sh "echo 'No tests configured yet'"
+            }
+        }
+        stage("Build Artifact"){
+            steps{
+                   sh '''
+                        dotnet publish ${PROJECT_PATH} \
+                             -c ${BUILD_CONFIG} \
+                             -o ${ARTIFACTS_DIR} 
+                      '''
+            }
+        }
+        stage("archive Build output"){
+            steps{
+                   archiveArtifacts artifacts: "${ARTIFACTS_DIR}/**", allowEmptyArchive: false
+            }
+        }
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    dockerImage = docker.build(
+                        "${env.FULL_IMAGE}:${BUILD_NUMBER}",
+                        "BankApp/Dockerfile"
+                    )
+                }
+            }
+        }
+        stage('Upload App Image to ECR') {
+          steps {
+             script {
+                   dockerImage.push("${BUILD_NUMBER}")
+                   dockerImage.push("latest")
+             }
+          } 
+        }
+   
+       stage('Remove Container Images'){
+            steps{
+                sh 'docker rmi -f $(docker images -a -q)'
+            }
+        }
+        stage("Hello") {
+            steps {
+                sh 'echo "My first real Jenkins pipeline for .NET! 🚀"'
             }
         }
     }
