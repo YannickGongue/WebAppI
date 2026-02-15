@@ -3,7 +3,7 @@ pipeline{
     environment{
         PROJECT_PATH = "WebAPI_Test_Project/WebAPI_Test_Project/WebAPI_Test_Project.csproj"
         BUILD_CONFIG = "Release"
-        Artifact_DIR = "publish"
+        ARTIFACTS_DIR  = "publish"
         REGISTRY_CREDENTIALS = "WebApi_AccessKeys"
         ACCOUNT_ID = "322276017193"
         IMAGE_NAME = "webapirepo"
@@ -33,11 +33,6 @@ pipeline{
                 sh "dotnet build ${PROJECT_PATH} -c ${BUILD_CONFIG}"
             }
         }
-        stage("Publish Application"){
-            steps{
-                sh "dotnet publish ${PROJECT_PATH} -c ${BUILD_CONFIG} -o ${Artifact_DIR}"
-            }
-        }
         stage("Run Test"){
             steps{
                     sh "echo 'No tests configured yet'"
@@ -45,11 +40,7 @@ pipeline{
         }
         stage("Build Artifact"){
             steps{
-                   sh '''
-                        dotnet publish ${PROJECT_PATH} \
-                             -c ${BUILD_CONFIG} \
-                             -o ${ARTIFACTS_DIR} 
-                      '''
+                   sh "dotnet publish ${PROJECT_PATH} -c ${BUILD_CONFIG} -o ${ARTIFACTS_DIR}"
             }
         }
         stage("archive Build output"){
@@ -57,16 +48,31 @@ pipeline{
                    archiveArtifacts artifacts: "${ARTIFACTS_DIR}/**", allowEmptyArchive: false
             }
         }
-        stage('Build Docker Image') {
+        stage('Build Docker Image'){
             steps {
                 script {
                     dockerImage = docker.build(
-                        "${env.FULL_IMAGE}:${BUILD_NUMBER}",
-                        "BankApp/Dockerfile"
+                        "${FULL_IMAGE}:${BUILD_NUMBER}",
+                        " -f WebAPI_Test_Project/WebAPI_Test_Project/Dockerfile WebAPI_Test_Project/WebAPI_Test_Project"
                     )
                 }
             }
         }
+        stage("Login to ECR") {
+           steps {
+                   withCredentials([[
+                   $class: 'AmazonWebServicesCredentialsBinding',
+                   credentialsId: "${REGISTRY_CREDENTIALS}",
+                  ]]) 
+                  {
+                    sh """
+                       aws ecr get-login-password --region us-east-1 | \
+                       docker login --username AWS --password-stdin ${ECR_REGISTRY}
+                      """
+             }
+          }
+         }
+
         stage('Upload App Image to ECR') {
           steps {
              script {
