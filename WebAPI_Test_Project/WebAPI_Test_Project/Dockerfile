@@ -12,16 +12,16 @@ EXPOSE 8081
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["WebAPI_Test_Project/WebAPI_Test_Project/WebAPI_Test_Project.csproj", "WebAPI_Test_Project/"]
-RUN dotnet restore "./WebAPI_Test_Project/WebAPI_Test_Project.csproj"
+COPY ["WebAPI_Test_Project.csproj", "./"]
+RUN dotnet restore "WebAPI_Test_Project.csproj"
 COPY . .
-WORKDIR "/src/WebAPI_Test_Project"
-RUN dotnet build "./WebAPI_Test_Project.csproj" -c $BUILD_CONFIGURATION -o /app/build
+#WORKDIR "/src/WebAPI_Test_Project"
+RUN dotnet build "WebAPI_Test_Project.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 # Diese Stufe wird verwendet, um das Dienstprojekt zu veröffentlichen, das in die letzte Phase kopiert werden soll.
 FROM build AS publish
-ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./WebAPI_Test_Project.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+#ARG BUILD_CONFIGURATION=Release
+RUN dotnet publish "WebAPI_Test_Project.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 # Diese Stufe wird in der Produktion oder bei Ausführung von VS im regulären Modus verwendet (Standard, wenn die Debugkonfiguration nicht verwendet wird).
 FROM base AS final
