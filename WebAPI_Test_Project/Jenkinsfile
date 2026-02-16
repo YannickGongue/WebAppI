@@ -10,6 +10,9 @@ pipeline{
         ECR_REGISTRY = "322276017193.dkr.ecr.us-east-1.amazonaws.com"
         ECR_REGISTRY_URL = "https://322276017193.dkr.ecr.us-east-1.amazonaws.com"
         FULL_IMAGE = "322276017193.dkr.ecr.us-east-1.amazonaws.com/webapirepo"
+        ECS_CLUSTER = "WebAPI_Cluster"
+        ECS_SERVICE = "WebApi_Task-service"
+
     }
     stages{
         stage("checkout Code"){
@@ -87,6 +90,14 @@ pipeline{
                 sh 'docker rmi -f $(docker images -a -q)'
             }
         }
+        stage('Deploy to ecs') {
+          steps {
+            withAWS(credentials: "${REGISTRY_CREDENTIALS}", region: 'us-east-1') {
+            sh 'aws ecs update-service --ECS_CLUSTER ${cluECS_CLUSTERster} --ECS_SERVICE ${ECS_SERVICE} --force-new-deployment'
+               }
+          }
+        }
+
         stage("Hello") {
             steps {
                 sh 'echo "My first real Jenkins pipeline for .NET! 🚀"'
