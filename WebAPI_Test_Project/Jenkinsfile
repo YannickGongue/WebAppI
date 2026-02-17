@@ -10,8 +10,8 @@ pipeline{
         ECR_REGISTRY = "322276017193.dkr.ecr.us-east-1.amazonaws.com"
         ECR_REGISTRY_URL = "https://322276017193.dkr.ecr.us-east-1.amazonaws.com"
         FULL_IMAGE = "322276017193.dkr.ecr.us-east-1.amazonaws.com/webapirepo"
-        ECS_CLUSTER = "WebAPI_Cluster"
-        ECS_SERVICE = "WebApi_Task-service"
+        ECS_CLUSTER = "WebApi_ClusterUpdate"
+        ECS_SERVICE = "WebApiTask_update-service"
 
     }
     stages{
@@ -93,7 +93,7 @@ pipeline{
         stage('Deploy to ecs') {
           steps {
             withAWS(credentials: "${REGISTRY_CREDENTIALS}", region: 'us-east-1') {
-            sh 'aws ecs update-service --ECS_CLUSTER ${cluECS_CLUSTERster} --ECS_SERVICE ${ECS_SERVICE} --force-new-deployment'
+            sh 'aws ecs update-service --cluster ${ECS_CLUSTER} --service ${ECS_SERVICE} --force-new-deployment'
                }
           }
         }
