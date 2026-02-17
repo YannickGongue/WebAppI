@@ -10,8 +10,8 @@ pipeline{
         ECR_REGISTRY = "322276017193.dkr.ecr.us-east-1.amazonaws.com"
         ECR_REGISTRY_URL = "https://322276017193.dkr.ecr.us-east-1.amazonaws.com"
         FULL_IMAGE = "322276017193.dkr.ecr.us-east-1.amazonaws.com/webapirepo"
-        ECS_CLUSTER = "WebApi_ClusterUpdate"
-        ECS_SERVICE = "WebApiTask_update-service"
+        ECS_CLUSTER = "WebApi"
+        ECS_SERVICE = "WebApiTask-service-1isgz8up"
 
     }
     stages{
